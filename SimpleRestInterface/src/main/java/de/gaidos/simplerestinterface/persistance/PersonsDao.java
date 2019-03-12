@@ -1,64 +1,65 @@
 
 package de.gaidos.simplerestinterface.persistance;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 
+import de.gaidos.simplerestinterface.exceptionhandling.ColorNotFoundException;
+import de.gaidos.simplerestinterface.exceptionhandling.PersonNotFoundException;
 import de.gaidos.simplerestinterface.model.Persons;
-import de.gaidos.simplerestinterface.utils.CSVUtils;
 
-public class PersonsDao implements PersistenceDao<Persons> {
+@Component
+public class PersonsDao {
+	
+	public Persons get(Integer id) {
+		List<Persons> personList = PersistenceAccess.getPersonsFromPersistence();
+		if (id > 0 && id < personList.size()) {
+			return personList.get(id - 1);
+		}
+		throw new PersonNotFoundException("Person not found!");
+	}
 
-  private static final String CSV_FILE_PATH = new File(PersonsDao.class.getClassLoader().getResource("input.csv").getFile()).getPath();
+	public List<Persons> getAll() {
+		return PersistenceAccess.getPersonsFromPersistence();
+	}
 
-  @Override
-  public ResponseEntity<Persons> get(long id) {
-    // TODO Auto-generated method stub
-    return null;
-  }
+	public List<Persons> getPersonsByColorCode(String colorCode) {
+		List<Persons> personsWithSpecifiedColorCode = new ArrayList<Persons>();
+		int intColCode = 0;
+		try {
+			intColCode = Integer.parseInt(colorCode);
+		} catch (NumberFormatException e) {
+			// TODO: handle exception
+			throw new ColorNotFoundException("Color not found!");
+		}
+		List<Persons> personList = PersistenceAccess.getPersonsFromPersistence();
+		for (Persons person : personList) {
+			ColorTypes colorType = ColorTypes.valueOf(person.getColor());
+			if (colorType != null && colorType.getColorCode() == intColCode) {
+				personsWithSpecifiedColorCode.add(person);
+			}
+		}
+		
+		if(personsWithSpecifiedColorCode.isEmpty()) {
+			throw new PersonNotFoundException("Persons not found for given color " + colorCode);
+		}
+		
+		return personsWithSpecifiedColorCode;
+	}
 
-  @Override
-  public List<Persons> getAll() {
-    return csvLineToPersonList(CSVUtils.readCSVFile(CSV_FILE_PATH));
-  }
+	public void save(Persons person) {
+		PersistenceAccess.persistPerson(person);
+	}
 
-  @Override
-  public void save(Persons t) {
-    // TODO Auto-generated method stub
+	public void update(Persons t, String[] params) {
+		// TODO Auto-generated method stub
+	}
 
-  }
+	public void delete(Persons t) {
+		// TODO Auto-generated method stub
+	}
 
-  @Override
-  public void update(Persons t, String[] params) {
-    // TODO Auto-generated method stub
-  }
 
-  @Override
-  public void delete(Persons t) {
-    // TODO Auto-generated method stub
-  }
-
-  private static List<Persons> csvLineToPersonList(List<String> lines) {
-    List<Persons> personList = new ArrayList<Persons>();
-    int idCount = 0;
-    for (String line : lines) {
-      personList.add(csvLineToPersonConvertion(idCount++, line));
-    }
-    return personList;
-  }
-
-  private static Persons csvLineToPersonConvertion(int lineNumber, String lineContent) {
-    String[] line = lineContent.split(CSVUtils.DEFAULT_SEPARATOR);
-
-    if (line == null && line.length != 4) {
-      // handle error
-      return null;
-    } else {
-      String[] cityZipSplit = line[2].split(" ");
-      return new Persons(lineNumber, line[0], line[1], cityZipSplit[0], cityZipSplit[1], line[3]);
-    }
-  }
 }
