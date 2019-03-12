@@ -1,27 +1,28 @@
 
 package de.gaidos.simplerestinterface.persistance;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
 
 import de.gaidos.simplerestinterface.model.Persons;
 import de.gaidos.simplerestinterface.utils.CSVUtils;
 
 public class PersonsDao implements PersistenceDao<Persons> {
 
-  private static final String CSV_FILE_PATH = "D:\\input.csv";
+  private static final String CSV_FILE_PATH = new File(PersonsDao.class.getClassLoader().getResource("input.csv").getFile()).getPath();
 
   @Override
-  public Optional<Persons> get(long id) {
+  public ResponseEntity<Persons> get(long id) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public List<Persons> getAll() {
-    CSVUtils.readCSVFile(CSV_FILE_PATH);
-    return null;
+    return csvLineToPersonList(CSVUtils.readCSVFile(CSV_FILE_PATH));
   }
 
   @Override
@@ -40,7 +41,7 @@ public class PersonsDao implements PersistenceDao<Persons> {
     // TODO Auto-generated method stub
   }
 
-  private List<Persons> csvLineToPersonList(List<String> lines) {
+  private static List<Persons> csvLineToPersonList(List<String> lines) {
     List<Persons> personList = new ArrayList<Persons>();
     int idCount = 0;
     for (String line : lines) {
@@ -49,7 +50,7 @@ public class PersonsDao implements PersistenceDao<Persons> {
     return personList;
   }
 
-  private Persons csvLineToPersonConvertion(int lineNumber, String lineContent) {
+  private static Persons csvLineToPersonConvertion(int lineNumber, String lineContent) {
     String[] line = lineContent.split(CSVUtils.DEFAULT_SEPARATOR);
 
     if (line == null && line.length != 4) {

@@ -2,11 +2,12 @@
 package de.gaidos.simplerestinterface.persistance;
 
 import java.util.List;
-import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
 
 public interface PersistenceDao<T> {
 
-  public Optional<T> get(long id);
+  public ResponseEntity<T> get(long id);
 
   public List<T> getAll();
 
